@@ -1,0 +1,17 @@
+{
+  "name": "setup-oss-cad-suite",
+  "version": "1.0.0",
+  "license": "ISC",
+  "private": true,
+  "scripts": {
+    "build": "ncc build src/setup-oss-cad-suite.js"
+  },
+  "dependencies": {
+    "@actions/core": "^1.0.0",
+    "@actions/exec": "^1.0.0",
+    "@actions/tool-cache": "^1.1.0"
+  },
+  "devDependencies": {
+    "@vercel/ncc": "^0.28.6"
+  }
+}

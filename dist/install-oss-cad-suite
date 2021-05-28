@@ -1,0 +1,18 @@
+#!/bin/bash
+
+set -eo pipefail
+
+cd $RUNNER_TEMP
+
+mkdir -p .setup-oss-cad-suite
+pushd .setup-oss-cad-suite
+if [ -n "$1" ]; then
+    build=`curl -s https://api.github.com/repos/YosysHQ/oss-cad-suite-build/releases/tags/$1 | grep browser_download_url | grep linux-x64 | cut -f4 -d\"`
+else
+    build=`curl -s https://api.github.com/repos/YosysHQ/oss-cad-suite-build/releases/latest | grep browser_download_url | grep linux-x64 | cut -f4 -d\"`
+fi
+wget -q $build -O build.tgz
+tar xfz build.tgz
+rm build.tgz
+popd
+echo "$(pwd)/.setup-oss-cad-suite/oss-cad-suite/bin" >> $GITHUB_PATH
