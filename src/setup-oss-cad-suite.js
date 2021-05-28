@@ -23,8 +23,10 @@ async function main() {
 
   await installOSSCADSuite()
   console.log(`##[endgroup]`)
-
-  process.env.PATH = `${process.env.RUNNER_TEMP}/.setup-oss-cad-suite/oss-cad-suite/bin:${process.env.PATH}`
+  core.addPath(`${process.env.RUNNER_TEMP}/.setup-oss-cad-suite/oss-cad-suite/bin`)
+  const pythonOverride = core.getInput('python-override')
+  if (pythonOverride)
+    core.addPath(`${process.env.RUNNER_TEMP}/.setup-oss-cad-suite/oss-cad-suite/py3bin`)
 }
 
 function checkPlatform() {

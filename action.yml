@@ -7,6 +7,9 @@ branding:
 inputs:
   osscadsuite-version:
     description: Version range or exact version of OSS CAD Suite to use
+  python-override:
+    description: Use Python3 provided with OSS CAD Suite
+    default: false
 runs:
   using: node12
   main: dist/index.js

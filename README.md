@@ -24,6 +24,14 @@ steps:
 - run: yosys --version
 ```
 
+OSS CAD Suite flavored Python3 can be used with next option:
+```yaml
+steps:
+- uses: YosysHQ/setup-oss-cad-suite@v1
+  with:
+    python-override: true
+```
+
 # Example
 
 ```yaml

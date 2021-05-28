@@ -15,4 +15,3 @@ wget -q $build -O build.tgz
 tar xfz build.tgz
 rm build.tgz
 popd
-echo "$(pwd)/.setup-oss-cad-suite/oss-cad-suite/bin" >> $GITHUB_PATH
