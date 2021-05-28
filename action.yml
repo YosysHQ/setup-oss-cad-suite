@@ -3,7 +3,7 @@ description: Set up a specific version of OSS CAD Suite and add the command-line
 author: GitHub
 branding:
   color: purple
-  icon: code
+  icon: cpu
 inputs:
   osscadsuite-version:
     description: Version range or exact version of OSS CAD Suite to use
