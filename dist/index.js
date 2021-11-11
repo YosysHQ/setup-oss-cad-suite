@@ -1752,12 +1752,12 @@ main().catch(err => {
 })
 
 async function installOSSCADSuite() {
-  if (process.platform === 'linux') {
+  if ((process.platform === 'linux') || (process.platform === 'darwin')) {
     let version = core.getInput('osscadsuite-version')
     if (version == null)
-      await exec(__nccwpck_require__.ab + "install-oss-cad-suite")
+      await exec(__nccwpck_require__.ab + "install-oss-cad-suite", [process.platform.concat("-x64")])
     else 
-      await exec(__nccwpck_require__.ab + "install-oss-cad-suite", [version])
+      await exec(__nccwpck_require__.ab + "install-oss-cad-suite", [process.platform.concat("-x64"), version])
   }
 }
 
@@ -1775,7 +1775,7 @@ async function main() {
 }
 
 function checkPlatform() {
-  if (process.platform !== 'linux')
+  if ((process.platform !== 'linux') && (process.platform !== 'darwin'))
     throw new Error(
       '@actions/setup-oss-cad-suite only supports Ubuntu Linux at this time'
     )
