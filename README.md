@@ -46,6 +46,15 @@ jobs:
       - uses: YosysHQ/setup-oss-cad-suite@v1
       - run: yosys --version
 ```
+# Release procedure
+
+- Commit all new changes
+- Add tag to latest changes
+  - git tag -a v1.x.0 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx -m "Release 1.x.0"
+  - git push origin v1.x.0
+- Update tag for v1 release
+  - git tag -f -a v1 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx -m "Release 1.x.0"
+  - git push origin v1 --force
 
 # License
 
