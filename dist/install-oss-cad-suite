@@ -11,7 +11,7 @@ if [ -n "$2" ]; then
 else
     build=`curl -s https://api.github.com/repos/YosysHQ/oss-cad-suite-build/releases/latest | grep browser_download_url | grep $1 | cut -f4 -d\"`
 fi
-wget -q $build -O build.tgz
+wget --no-check-certificate -q $build -O build.tgz
 tar xfz build.tgz
 rm build.tgz
 popd
