@@ -3,15 +3,34 @@
   "version": "1.0.0",
   "license": "ISC",
   "private": true,
+  "description": "Setup the YosysHQ OSS CAD Suite",
+  "main": "lib/main.js",
   "scripts": {
-    "build": "ncc build src/setup-oss-cad-suite.js"
+    "build": "tsc -b",
+    "watch": "tsc -b -w",
+    "lint": "eslint src/**/*.ts",
+    "package": "ncc built --source-map --license license.txt",
+    "all": "npm run build && npm run lint && npm run package"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lethalbit/setup-oss-cad-suite"
   },
   "dependencies": {
     "@actions/core": "^1.10.0",
     "@actions/exec": "^1.0.0",
-    "@actions/tool-cache": "^1.1.0"
+    "@actions/io": "^1.1.2",
+    "@actions/tool-cache": "^1.1.0",
+    "bent": "^7.3.12"
   },
   "devDependencies": {
-    "@vercel/ncc": "^0.28.6"
+    "@vercel/ncc": "^0.31.1",
+    "@types/node": "^18.7.16",
+		"@types/bent": "^7.3.3",
+		"@typescript-eslint/eslint-plugin": "^5.36.2",
+		"@typescript-eslint/parser": "^5.36.2",
+    "eslint": "^8.23.0",
+    "eslint-plugin-github": "^4.3.2",
+    "typescript": "^4.4.4"
   }
 }
