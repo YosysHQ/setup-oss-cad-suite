@@ -26,7 +26,7 @@ async function getDownloadURL(platform = 'linux', arch = 'x64', tag?: string): P
 
 	const _http = new http.HttpClient(`setup-oss-cad-suite-v${process.env.npm_package_version}`)
 
-	core.debug(`Getting download URL for ${ARCHIVE_PREFIX}`)
+	core.info(`Getting download URL for ${ARCHIVE_PREFIX}`)
 
 	const resp = await _http.getJson<github_release>(`${API_URL}/${API_ENDPOINT}`)
 	const assets = resp.result?.assets
@@ -48,7 +48,7 @@ async function getDownloadURL(platform = 'linux', arch = 'x64', tag?: string): P
 }
 
 async function main(): Promise<void> {
-	core.debug('Starting setup-oss-cad-suite')
+	core.info('Setting up oss-cad-suite')
 	try {
 		const pkg_dir = `${process.env.RUNNER_TEMP}/oss-cad-suite`
 		const os = process.platform
@@ -61,10 +61,10 @@ async function main(): Promise<void> {
 		// Get the download URL for the package and then download it
 		const download_url = await getDownloadURL(os, arch, tag === '' ? undefined : tag)
 
-		core.debug(`Downloading package from ${download_url}`)
+		core.info(`Downloading package from ${download_url}`)
 		const pkg_file = await tc.downloadTool(download_url, `${process.env.RUNNER_TEMP}`)
 
-		core.debug(`Extracting ${pkg_file} to ${pkg_dir}`)
+		core.info(`Extracting ${pkg_file} to ${pkg_dir}`)
 		const suite_path = await tc.extractTar(
 			pkg_file, pkg_dir,
 			['xz', '--strip-components=1']
@@ -74,7 +74,7 @@ async function main(): Promise<void> {
 			core.info('Overloading system python with oss-cad-suite provided python')
 			core.addPath(`${suite_path}/py3bin`)
 		}
-		core.debug('Done')
+		core.info('Done')
 	} catch (err) {
 		if (err instanceof Error) {
 			core.setFailed(err.message)
