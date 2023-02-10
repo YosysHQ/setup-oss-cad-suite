@@ -23,10 +23,12 @@ jobs:
         shell: bash
         run: |
           yosys --version
+          sby --help | head -1
           nextpnr-ice40 --version
           nextpnr-ecp5 --version
           nextpnr-nexus --version
           verilator --version
-          iverilog -v | head -1
+          yices --version | head -1
+
           sby --help | head -1
           yices --version | head -1
