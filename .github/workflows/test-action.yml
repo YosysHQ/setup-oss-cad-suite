@@ -82,3 +82,19 @@ jobs:
           verilator --version
           yices --version | head -1
           python --version
+  test-action-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./
+      - name: Tool Versions
+        shell: bash
+        run: |
+          yosys --version
+          sby --help | head -1
+          nextpnr-ice40 --version
+          nextpnr-ecp5 --version
+          nextpnr-nexus --version
+          verilator --version
+          yices --version | head -1
+          python --version
