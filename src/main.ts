@@ -47,6 +47,21 @@ async function getDownloadURL(platform = 'linux', arch = 'x64', tag?: string): P
 	return url
 }
 
+function _validate(os: NodeJS.Platform , arch: NodeJS.Architecture) {
+	if (os === 'linux') {
+		const is_arm = ((arch === 'arm64') || (arch === 'arm'))
+		if ((!is_arm) && (arch !== 'x64')) {
+			throw Error(`Unsupported architecture '${arch}' for linux, must be either arm, arm64, or x64`)
+		}
+	} else if (os === 'darwin') {
+		if ((arch !== 'arm64') && (arch !== 'x64')) {
+			throw Error(`Unsupported architecture '${arch}' for darwin, must be either arm64 or x64`)
+		}
+	} else {
+		throw Error(`Unsupported Operating System '${os}', must be either linux or darwin`)
+	}
+}
+
 async function main(): Promise<void> {
 	core.info('Setting up oss-cad-suite')
 	try {
@@ -54,6 +69,8 @@ async function main(): Promise<void> {
 		const os = process.platform
 		const arch = process.arch
 		const tag = core.getInput('version')
+
+		_validate(os, arch)
 
 		// Make the target dir for extraction
 		await io.mkdirP(pkg_dir)
