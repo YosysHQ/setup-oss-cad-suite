@@ -5,7 +5,7 @@ branding:
   color: purple
   icon: cpu
 inputs:
-  osscadsuite-version:
+  version:
     description: Version range or exact version of OSS CAD Suite to use
   python-override:
     description: Use Python3 provided with OSS CAD Suite

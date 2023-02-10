@@ -53,7 +53,7 @@ async function main(): Promise<void> {
 		const pkg_dir = `${process.env.RUNNER_TEMP}/oss-cad-suite`;
 		const os = process.platform;
 		const arch = process.arch;
-		const tag = core.getInput('osscadsuite-version');
+		const tag = core.getInput('version')
 
 		// Make the target dir for extraction
 		await io.mkdirP(pkg_dir)
