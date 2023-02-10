@@ -62,7 +62,7 @@ async function main(): Promise<void> {
 		const download_url = await getDownloadURL(os, arch, tag === '' ? undefined : tag)
 
 		core.info(`Downloading package from ${download_url}`)
-		const pkg_file = await tc.downloadTool(download_url, `${process.env.RUNNER_TEMP}`)
+		const pkg_file = await tc.downloadTool(download_url, `${process.env.RUNNER_TEMP}/oss-cad-suite.tgz`)
 
 		core.info(`Extracting ${pkg_file} to ${pkg_dir}`)
 		const suite_path = await tc.extractTar(
