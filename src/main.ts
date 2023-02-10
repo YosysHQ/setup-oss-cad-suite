@@ -50,9 +50,9 @@ async function getDownloadURL(platform = 'linux', arch = 'x64', tag?: string): P
 async function main(): Promise<void> {
 	core.debug('Starting setup-oss-cad-suite')
 	try {
-		const pkg_dir = `${process.env.RUNNER_TEMP}/oss-cad-suite`;
-		const os = process.platform;
-		const arch = process.arch;
+		const pkg_dir = `${process.env.RUNNER_TEMP}/oss-cad-suite`
+		const os = process.platform
+		const arch = process.arch
 		const tag = core.getInput('version')
 
 		// Make the target dir for extraction
