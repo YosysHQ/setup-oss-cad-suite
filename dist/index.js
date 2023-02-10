@@ -81,7 +81,7 @@ function main() {
             // Get the download URL for the package and then download it
             const download_url = yield getDownloadURL(os, arch, tag === '' ? undefined : tag);
             core.info(`Downloading package from ${download_url}`);
-            const pkg_file = yield tc.downloadTool(download_url, `${process.env.RUNNER_TEMP}`);
+            const pkg_file = yield tc.downloadTool(download_url, `${process.env.RUNNER_TEMP}/oss-cad-suite.tgz`);
             core.info(`Extracting ${pkg_file} to ${pkg_dir}`);
             const suite_path = yield tc.extractTar(pkg_file, pkg_dir, ['xz', '--strip-components=1']);
             core.addPath(`${suite_path}/bin`);
