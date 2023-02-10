@@ -1,6 +1,6 @@
 {
   "name": "setup-oss-cad-suite",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "license": "ISC",
   "private": true,
   "description": "Setup the YosysHQ OSS CAD Suite",
@@ -9,7 +9,7 @@
     "build": "tsc -b",
     "watch": "tsc -b -w",
     "lint": "eslint src/**/*.ts",
-    "package": "ncc built --source-map --license license.txt",
+    "package": "ncc build --source-map --license license.txt",
     "all": "npm run build && npm run lint && npm run package"
   },
   "repository": {
