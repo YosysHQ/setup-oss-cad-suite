@@ -29,6 +29,41 @@ jobs:
           nextpnr-nexus --version
           verilator --version
           yices --version | head -1
-
+          python --version
+  test-action-pinned:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./
+        with:
+          version: '2023-02-10'
+      - name: Tool Versions
+        shell: bash
+        run: |
+          yosys --version
           sby --help | head -1
+          nextpnr-ice40 --version
+          nextpnr-ecp5 --version
+          nextpnr-nexus --version
+          verilator --version
           yices --version | head -1
+          python --version
+  test-action-python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./
+        with:
+          python-override: true
+      - name: Tool Versions
+        shell: bash
+        run: |
+          yosys --version
+          sby --help | head -1
+          nextpnr-ice40 --version
+          nextpnr-ecp5 --version
+          nextpnr-nexus --version
+          verilator --version
+          yices --version | head -1
+          python3 --version
+          python2 --version
