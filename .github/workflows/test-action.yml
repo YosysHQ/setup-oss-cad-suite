@@ -1,0 +1,21 @@
+name: 'Test Action'
+on:
+  push:
+    branches:
+      - 'main'
+  pull_request: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: |
+          npm install
+      - run: |
+          NODE_OPTIONS=--openssl-legacy-provider npm run all
+  test-action:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./
