@@ -1,17 +1,20 @@
 import * as core from '@actions/core'
 import * as io   from '@actions/io'
-import bent      from 'bent'
-import {Json}    from 'bent'
+import * as http from '@actions/http-client'
+
 
 type github_asset = {
 	name: string,
 	browser_download_url: string,
 }
 
+type github_release = {
+	assets: github_asset[]
+}
 
 const API_URL = 'https://api.github.com/repos/YosysHQ/oss-cad-suite-build'
 
-async function getDownloadURL(platform = 'linux', arch = 'x64', tag?: string): Promise<string | undefined> {
+async function getDownloadURL(platform = 'linux', arch = 'x64', tag?: string): Promise<string> {
 	const ARCHIVE_PREFIX = `oss-cad-suite-${platform}-${arch}`
 	const API_ENDPOINT = (() => {
 		if (tag) {
@@ -20,20 +23,27 @@ async function getDownloadURL(platform = 'linux', arch = 'x64', tag?: string): P
 		return 'releases/latest'
 	})()
 
+	const _http = new http.HttpClient()
+
 	core.debug(`Getting download URL for ${ARCHIVE_PREFIX}`)
 
-	const res = await bent(API_URL, 'GET', 'json')(API_ENDPOINT) as Json
-	const assets: Array<github_asset> = res.entries['assets']
-	return assets.filter(
+	const resp = await _http.getJson<github_release>(`${API_URL}/${API_ENDPOINT}`)
+	const assets = resp.result?.assets
+
+	if (!assets) {
+		throw Error('Unable to get download URL for oss-cad-suite package')
+	}
+
+	const url = assets.filter(
 		pkg => pkg.name.startsWith(ARCHIVE_PREFIX)
 	).map(
 		pkg => pkg.browser_download_url
 	).shift()
-}
 
-async function downloadPackage(url: string) {
-	core.debug(`Downloading package from ${url}`)
-
+	if (!url) {
+		throw Error('Unable to get download URL for oss-cad-suite package')
+	}
+	return url
 }
 
 async function main(): Promise<void> {
@@ -48,11 +58,9 @@ async function main(): Promise<void> {
 		await io.mkdirP(pkg_dir)
 
 		// Get the download URL for the package and then download it
-		const download_url = await getDownloadURL(os, arch, tag === '' ? undefined : tag);
-		if (download_url) {
-			await downloadPackage(download_url)
-		} else {
-			throw Error('Unable to get download URL for OSS-CAD-SUITE package')
+		const download_url = await getDownloadURL(os, arch, tag === '' ? undefined : tag)
+
+		core.debug(`Downloading package from ${download_url}`)
 		}
 
 	} catch (err) {

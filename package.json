@@ -21,12 +21,11 @@
     "@actions/exec": "^1.0.0",
     "@actions/io": "^1.1.2",
     "@actions/tool-cache": "^1.1.0",
-    "bent": "^7.3.12"
+    "@actions/http-client": "^2.0.1"
   },
   "devDependencies": {
     "@vercel/ncc": "^0.31.1",
     "@types/node": "^18.7.16",
-		"@types/bent": "^7.3.3",
 		"@typescript-eslint/eslint-plugin": "^5.36.2",
 		"@typescript-eslint/parser": "^5.36.2",
     "eslint": "^8.23.0",
