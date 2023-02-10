@@ -24,7 +24,7 @@ async function getDownloadURL(platform = 'linux', arch = 'x64', tag?: string): P
 		return 'releases/latest'
 	})()
 
-	const _http = new http.HttpClient()
+	const _http = new http.HttpClient(`setup-oss-cad-suite-v${process.env.npm_package_version}`)
 
 	core.debug(`Getting download URL for ${ARCHIVE_PREFIX}`)
 
