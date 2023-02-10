@@ -1,5 +1,6 @@
 import * as core from '@actions/core'
 import * as io   from '@actions/io'
+import * as tc   from '@actions/tool-cache'
 import * as http from '@actions/http-client'
 
 
@@ -61,8 +62,19 @@ async function main(): Promise<void> {
 		const download_url = await getDownloadURL(os, arch, tag === '' ? undefined : tag)
 
 		core.debug(`Downloading package from ${download_url}`)
-		}
+		const pkg_file = await tc.downloadTool(download_url, `${process.env.RUNNER_TEMP}`)
 
+		core.debug(`Extracting ${pkg_file} to ${pkg_dir}`)
+		const suite_path = await tc.extractTar(
+			pkg_file, pkg_dir,
+			['xz', '--strip-components=1']
+		)
+		core.addPath(`${suite_path}/bin`)
+		if (core.getInput('python-override')) {
+			core.info('Overloading system python with oss-cad-suite provided python')
+			core.addPath(`${suite_path}/py3bin`)
+		}
+		core.debug('Done')
 	} catch (err) {
 		if (err instanceof Error) {
 			core.setFailed(err.message)
