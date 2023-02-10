@@ -19,7 +19,7 @@ async function getDownloadURL(platform = 'linux', arch = 'x64', tag?: string): P
 	const ARCHIVE_PREFIX = `oss-cad-suite-${platform}-${arch}`
 	const API_ENDPOINT = (() => {
 		if (tag) {
-			return `releases/tag/${tag}`
+			return `releases/tags/${tag}`
 		}
 		return 'releases/latest'
 	})()
