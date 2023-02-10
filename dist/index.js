@@ -43,6 +43,7 @@ const core = __importStar(__nccwpck_require__(2186));
 const io = __importStar(__nccwpck_require__(7436));
 const tc = __importStar(__nccwpck_require__(7784));
 const http = __importStar(__nccwpck_require__(6255));
+const exec = __importStar(__nccwpck_require__(1514));
 const API_URL = 'https://api.github.com/repos/YosysHQ/oss-cad-suite-build';
 function getDownloadURL(platform = 'linux', arch = 'x64', tag) {
     var _a;
@@ -86,35 +87,62 @@ function _validate(os, arch) {
             throw Error(`Unsupported architecture '${arch}' for darwin, must be either arm64 or x64`);
         }
     }
+    else if (os === 'win32') {
+        if (arch !== 'x64') {
+            throw Error(`Unsupported architecture '${arch}' for windows, must be x64`);
+        }
+    }
     else {
         throw Error(`Unsupported Operating System '${os}', must be either linux or darwin`);
     }
+}
+function isPosix(os) {
+    return ((os === 'linux') || (os === 'darwin'));
 }
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
         core.info('Setting up oss-cad-suite');
         try {
-            const pkg_dir = `${process.env.RUNNER_TEMP}/oss-cad-suite`;
+            const pkg_dir = core.toPlatformPath(`${process.env.RUNNER_TEMP}/oss-cad-suite`);
             const os = process.platform;
             const arch = process.arch;
             const tag = core.getInput('version');
+            const pkg_name = (() => {
+                if (isPosix(os)) {
+                    return 'oss-cad-suite.tgz';
+                }
+                return 'oss-cad-suite.exe';
+            })();
             core.debug(`Package directory is '${pkg_dir}'`);
+            core.debug(`Package name is '${pkg_dir}'`);
             // Ensure we're running on a supported configuration
             _validate(os, arch);
             // Make the target dir for extraction
             yield io.mkdirP(pkg_dir);
             // Get the download URL for the package and then download it
-            const download_url = yield getDownloadURL(os, arch, tag === '' ? undefined : tag);
+            const download_url = yield getDownloadURL(os === 'win32' ? 'windows' : os, arch, tag === '' ? undefined : tag);
             // Download the package to the temp directory
             core.info(`Downloading package from ${download_url}`);
-            const pkg_file = yield tc.downloadTool(download_url, `${process.env.RUNNER_TEMP}/oss-cad-suite.tgz`);
+            const pkg_file = yield tc.downloadTool(download_url, core.toPlatformPath(`${process.env.RUNNER_TEMP}/${pkg_name}`));
             // Extract the package
             core.info(`Extracting ${pkg_file} to ${pkg_dir}`);
-            const suite_path = yield tc.extractTar(pkg_file, pkg_dir, ['xz', '--strip-components=1']);
+            let suite_path = undefined;
+            if (isPosix(os)) {
+                core.debug('System is a posix-like, using extract tar');
+                suite_path = yield tc.extractTar(pkg_file, pkg_dir, ['xz', '--strip-components=1']);
+            }
+            else {
+                core.debug('Assuming system is windows, trying to run installer');
+                suite_path = pkg_dir;
+                yield exec.exec(pkg_file, [
+                    `-o${pkg_dir}`, '-y'
+                ]);
+            }
+            core.debug(`Suite path is '${suite_path}'`);
             // Add the bin dir to the path
             core.addPath(`${suite_path}/bin`);
             // If we are overloading the system python, do so
-            if (core.getInput('python-override')) {
+            if (core.getInput('python-override') === 'true') {
                 core.info('Overloading system python with oss-cad-suite provided python');
                 core.addPath(`${suite_path}/py3bin`);
             }

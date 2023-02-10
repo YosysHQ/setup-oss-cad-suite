@@ -2,6 +2,7 @@ import * as core from '@actions/core'
 import * as io   from '@actions/io'
 import * as tc   from '@actions/tool-cache'
 import * as http from '@actions/http-client'
+import * as exec from '@actions/exec'
 
 
 type github_asset = {
@@ -63,20 +64,35 @@ function _validate(os: NodeJS.Platform , arch: NodeJS.Architecture) {
 		if ((arch !== 'arm64') && (arch !== 'x64')) {
 			throw Error(`Unsupported architecture '${arch}' for darwin, must be either arm64 or x64`)
 		}
+	} else if (os === 'win32') {
+		if (arch !== 'x64') {
+			throw Error(`Unsupported architecture '${arch}' for windows, must be x64`)
+		}
 	} else {
 		throw Error(`Unsupported Operating System '${os}', must be either linux or darwin`)
 	}
 }
 
+function isPosix(os: NodeJS.Platform) {
+	return ((os === 'linux') || (os === 'darwin'))
+}
+
 async function main(): Promise<void> {
 	core.info('Setting up oss-cad-suite')
 	try {
-		const pkg_dir = `${process.env.RUNNER_TEMP}/oss-cad-suite`
+		const pkg_dir = core.toPlatformPath(`${process.env.RUNNER_TEMP}/oss-cad-suite`)
 		const os = process.platform
 		const arch = process.arch
 		const tag = core.getInput('version')
+		const pkg_name = (() => {
+			if (isPosix(os)) {
+				return 'oss-cad-suite.tgz'
+			}
+			return 'oss-cad-suite.exe'
+		})()
 
 		core.debug(`Package directory is '${pkg_dir}'`)
+		core.debug(`Package name is '${pkg_dir}'`)
 
 		// Ensure we're running on a supported configuration
 		_validate(os, arch)
@@ -85,24 +101,45 @@ async function main(): Promise<void> {
 		await io.mkdirP(pkg_dir)
 
 		// Get the download URL for the package and then download it
-		const download_url = await getDownloadURL(os, arch, tag === '' ? undefined : tag)
+		const download_url = await getDownloadURL(
+			os === 'win32' ? 'windows' : os, arch,
+			tag === '' ? undefined : tag
+		)
 
 		// Download the package to the temp directory
 		core.info(`Downloading package from ${download_url}`)
-		const pkg_file = await tc.downloadTool(download_url, `${process.env.RUNNER_TEMP}/oss-cad-suite.tgz`)
+		const pkg_file = await tc.downloadTool(
+			download_url,
+			core.toPlatformPath(`${process.env.RUNNER_TEMP}/${pkg_name}`)
+		)
 
 		// Extract the package
 		core.info(`Extracting ${pkg_file} to ${pkg_dir}`)
-		const suite_path = await tc.extractTar(
-			pkg_file, pkg_dir,
-			['xz', '--strip-components=1']
-		)
+		let suite_path = undefined
+		if (isPosix(os)) {
+			core.debug('System is a posix-like, using extract tar')
+			suite_path = await tc.extractTar(
+				pkg_file, pkg_dir,
+				['xz', '--strip-components=1']
+			)
+		} else {
+			core.debug('Assuming system is windows, trying to run installer')
+			suite_path = pkg_dir
+			await exec.exec(
+				pkg_file, [
+					// Because we can't strip out the root we have to just extract over the dir
+					`-o${process.env.RUNNER_TEMP}`, '-y'
+				]
+			)
+		}
+
+		core.debug(`Suite path is '${suite_path}'`)
 
 		// Add the bin dir to the path
 		core.addPath(`${suite_path}/bin`)
 
 		// If we are overloading the system python, do so
-		if (core.getInput('python-override')) {
+		if (core.getInput('python-override') === 'true') {
 			core.info('Overloading system python with oss-cad-suite provided python')
 			core.addPath(`${suite_path}/py3bin`)
 		}
