@@ -66,4 +66,3 @@ jobs:
           verilator --version
           yices --version | head -1
           python3 --version
-          python2 --version
