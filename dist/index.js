@@ -55,7 +55,7 @@ function getDownloadURL(platform = 'linux', arch = 'x64', tag) {
             return 'releases/latest';
         })();
         const _http = new http.HttpClient(`setup-oss-cad-suite-v${process.env.npm_package_version}`);
-        core.debug(`Getting download URL for ${ARCHIVE_PREFIX}`);
+        core.info(`Getting download URL for ${ARCHIVE_PREFIX}`);
         const resp = yield _http.getJson(`${API_URL}/${API_ENDPOINT}`);
         const assets = (_a = resp.result) === null || _a === void 0 ? void 0 : _a.assets;
         if (!assets) {
@@ -70,7 +70,7 @@ function getDownloadURL(platform = 'linux', arch = 'x64', tag) {
 }
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
-        core.debug('Starting setup-oss-cad-suite');
+        core.info('Setting up oss-cad-suite');
         try {
             const pkg_dir = `${process.env.RUNNER_TEMP}/oss-cad-suite`;
             const os = process.platform;
@@ -80,16 +80,16 @@ function main() {
             yield io.mkdirP(pkg_dir);
             // Get the download URL for the package and then download it
             const download_url = yield getDownloadURL(os, arch, tag === '' ? undefined : tag);
-            core.debug(`Downloading package from ${download_url}`);
+            core.info(`Downloading package from ${download_url}`);
             const pkg_file = yield tc.downloadTool(download_url, `${process.env.RUNNER_TEMP}`);
-            core.debug(`Extracting ${pkg_file} to ${pkg_dir}`);
+            core.info(`Extracting ${pkg_file} to ${pkg_dir}`);
             const suite_path = yield tc.extractTar(pkg_file, pkg_dir, ['xz', '--strip-components=1']);
             core.addPath(`${suite_path}/bin`);
             if (core.getInput('python-override')) {
                 core.info('Overloading system python with oss-cad-suite provided python');
                 core.addPath(`${suite_path}/py3bin`);
             }
-            core.debug('Done');
+            core.info('Done');
         }
         catch (err) {
             if (err instanceof Error) {
