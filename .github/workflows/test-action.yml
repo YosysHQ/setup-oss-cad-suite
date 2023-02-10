@@ -19,3 +19,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: ./
+      - name: Tool Versions
+        shell: bash
+        run: |
+          yosys --version
+          nextpnr-ice40 --version
+          nextpnr-ecp5 --version
+          nextpnr-nexus --version
+          verilator --version
+          iverilog -v | head -1
+          sby --help | head -1
+          yices --version | head -1
