@@ -68,6 +68,22 @@ function getDownloadURL(platform = 'linux', arch = 'x64', tag) {
         return url;
     });
 }
+function _validate(os, arch) {
+    if (os === 'linux') {
+        const is_arm = ((arch === 'arm64') || (arch === 'arm'));
+        if ((!is_arm) && (arch !== 'x64')) {
+            throw Error(`Unsupported architecture '${arch}' for linux, must be either arm, arm64, or x64`);
+        }
+    }
+    else if (os === 'darwin') {
+        if ((arch !== 'arm64') && (arch !== 'x64')) {
+            throw Error(`Unsupported architecture '${arch}' for darwin, must be either arm64 or x64`);
+        }
+    }
+    else {
+        throw Error(`Unsupported Operating System '${os}', must be either linux or darwin`);
+    }
+}
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
         core.info('Setting up oss-cad-suite');
@@ -76,6 +92,7 @@ function main() {
             const os = process.platform;
             const arch = process.arch;
             const tag = core.getInput('version');
+            _validate(os, arch);
             // Make the target dir for extraction
             yield io.mkdirP(pkg_dir);
             // Get the download URL for the package and then download it
