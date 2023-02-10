@@ -54,7 +54,7 @@ function getDownloadURL(platform = 'linux', arch = 'x64', tag) {
             }
             return 'releases/latest';
         })();
-        const _http = new http.HttpClient();
+        const _http = new http.HttpClient(`setup-oss-cad-suite-v${process.env.npm_package_version}`);
         core.debug(`Getting download URL for ${ARCHIVE_PREFIX}`);
         const resp = yield _http.getJson(`${API_URL}/${API_ENDPOINT}`);
         const assets = (_a = resp.result) === null || _a === void 0 ? void 0 : _a.assets;
