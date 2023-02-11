@@ -139,7 +139,7 @@ async function main(): Promise<void> {
 		core.addPath(`${suite_path}/bin`)
 
 		// If we are overloading the system python, do so
-		if (core.getInput('python-override') === 'true') {
+		if (core.getBooleanInput('python-override')) {
 			core.info('Overloading system python with oss-cad-suite provided python')
 			core.addPath(`${suite_path}/py3bin`)
 		}
