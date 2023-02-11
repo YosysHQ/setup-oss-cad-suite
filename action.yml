@@ -1,6 +1,6 @@
 name: Setup OSS CAD Suite
-description: Set up a specific version of OSS CAD Suite and add the command-line tools to the PATH
-author: GitHub
+description: This downloads and sets up a pre-build EDA environment from the YosysHQ OSS CAD Suite, allowing you to have all the most up-to-date tools available to you.
+author: YosysHQ
 branding:
   color: purple
   icon: cpu
