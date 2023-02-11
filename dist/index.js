@@ -135,7 +135,8 @@ function main() {
                 core.debug('Assuming system is windows, trying to run installer');
                 suite_path = pkg_dir;
                 yield exec.exec(pkg_file, [
-                    `-o${pkg_dir}`, '-y'
+                    // Because we can't strip out the root we have to just extract over the dir
+                    `-o${process.env.RUNNER_TEMP}`, '-y'
                 ]);
             }
             core.debug(`Suite path is '${suite_path}'`);
