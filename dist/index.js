@@ -45,7 +45,7 @@ const tc = __importStar(__nccwpck_require__(7784));
 const http = __importStar(__nccwpck_require__(6255));
 const exec = __importStar(__nccwpck_require__(1514));
 const API_URL = 'https://api.github.com/repos/YosysHQ/oss-cad-suite-build';
-function getDownloadURL(platform = 'linux', arch = 'x64', tag) {
+function getDownloadURL(platform = 'linux', arch = 'x64', tag, token) {
     var _a;
     return __awaiter(this, void 0, void 0, function* () {
         const ARCHIVE_PREFIX = `oss-cad-suite-${platform}-${arch}`;
@@ -61,7 +61,12 @@ function getDownloadURL(platform = 'linux', arch = 'x64', tag) {
         const _http = new http.HttpClient(`setup-oss-cad-suite-v${process.env.npm_package_version}`);
         core.info(`Getting download URL for ${ARCHIVE_PREFIX}`);
         core.debug(`Endpoint URL is '${ENDPOINT_URL}'`);
-        const resp = yield _http.getJson(ENDPOINT_URL);
+        const resp = yield _http.getJson(ENDPOINT_URL, (() => {
+            if (token) {
+                return { 'authorization': `Bearer: ${token}` };
+            }
+            return undefined;
+        })());
         const assets = (_a = resp.result) === null || _a === void 0 ? void 0 : _a.assets;
         if (!assets) {
             core.debug('assets is empty');
@@ -107,6 +112,7 @@ function main() {
             const os = process.platform;
             const arch = process.arch;
             const tag = core.getInput('version');
+            const token = core.getInput('github-token');
             const pkg_name = (() => {
                 if (isPosix(os)) {
                     return 'oss-cad-suite.tgz';
@@ -120,7 +126,7 @@ function main() {
             // Make the target dir for extraction
             yield io.mkdirP(pkg_dir);
             // Get the download URL for the package and then download it
-            const download_url = yield getDownloadURL(os === 'win32' ? 'windows' : os, arch, tag === '' ? undefined : tag);
+            const download_url = yield getDownloadURL(os === 'win32' ? 'windows' : os, arch, tag === '' ? undefined : tag, token === '' ? undefined : token);
             // Download the package to the temp directory
             core.info(`Downloading package from ${download_url}`);
             const pkg_file = yield tc.downloadTool(download_url, core.toPlatformPath(`${process.env.RUNNER_TEMP}/${pkg_name}`));
