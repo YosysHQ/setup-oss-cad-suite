@@ -9,6 +9,9 @@ inputs:
     description: The workflow GITHUB_TOKEN to authenticate to the API with, this helps with API request limits from the public endpoint
   version:
     description: Version range or exact version of OSS CAD Suite to use
+  osscadsuite-version:
+    description: Version range or exact version of OSS CAD Suite to use
+    deprecationMessage: This option is deprecated and should be replaced with the "version" option
   python-override:
     description: Use Python3 provided with OSS CAD Suite
     default: false
