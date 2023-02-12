@@ -16,7 +16,7 @@ type github_release = {
 
 const API_URL = 'https://api.github.com/repos/YosysHQ/oss-cad-suite-build'
 
-async function getDownloadURL(platform = 'linux', arch = 'x64', tag?: string): Promise<string> {
+async function getDownloadURL(platform = 'linux', arch = 'x64', tag?: string, token?: string): Promise<string> {
 	const ARCHIVE_PREFIX = `oss-cad-suite-${platform}-${arch}`
 	const API_ENDPOINT = (() => {
 		if (tag) {
@@ -29,11 +29,20 @@ async function getDownloadURL(platform = 'linux', arch = 'x64', tag?: string): P
 	core.debug(`Using API_ENDPOINT of '${API_ENDPOINT}'`)
 	core.debug(`Archive prefix is '${ARCHIVE_PREFIX}'`)
 
-	const _http = new http.HttpClient(`setup-oss-cad-suite-v${process.env.npm_package_version}`)
+	const _http = new http.HttpClient(
+		`setup-oss-cad-suite-v${process.env.npm_package_version}`
+	)
 
 	core.info(`Getting download URL for ${ARCHIVE_PREFIX}`)
 	core.debug(`Endpoint URL is '${ENDPOINT_URL}'`)
-	const resp = await _http.getJson<github_release>(ENDPOINT_URL)
+	const resp = await _http.getJson<github_release>(
+		ENDPOINT_URL, (() => {
+			if (token) {
+				return {'authorization': `Bearer: ${token}`}
+			}
+			return undefined
+		})()
+	)
 	const assets = resp.result?.assets
 
 	if (!assets) {
@@ -84,6 +93,7 @@ async function main(): Promise<void> {
 		const os = process.platform
 		const arch = process.arch
 		const tag = core.getInput('version')
+		const token = core.getInput('github-token')
 		const pkg_name = (() => {
 			if (isPosix(os)) {
 				return 'oss-cad-suite.tgz'
@@ -103,7 +113,8 @@ async function main(): Promise<void> {
 		// Get the download URL for the package and then download it
 		const download_url = await getDownloadURL(
 			os === 'win32' ? 'windows' : os, arch,
-			tag === '' ? undefined : tag
+			tag === '' ? undefined : tag,
+			token === '' ? undefined : token
 		)
 
 		// Download the package to the temp directory

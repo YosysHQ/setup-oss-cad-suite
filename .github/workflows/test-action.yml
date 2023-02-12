@@ -97,3 +97,21 @@ jobs:
           verilator --version
           yices --version
           python --version
+  test-action-token:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Tool Versions
+        shell: bash
+        run: |
+          yosys --version
+          sby --help | head -1
+          nextpnr-ice40 --version
+          nextpnr-ecp5 --version
+          nextpnr-nexus --version
+          verilator --version
+          yices --version | head -1
+          python --version

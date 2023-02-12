@@ -5,6 +5,8 @@ branding:
   color: purple
   icon: cpu
 inputs:
+  github-token:
+    description: The workflow GITHUB_TOKEN to authenticate to the API with, this helps with API request limits from the public endpoint
   version:
     description: Version range or exact version of OSS CAD Suite to use
   python-override:
