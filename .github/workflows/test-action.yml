@@ -1,0 +1,97 @@
+name: 'Test Action'
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: |
+          npm install
+      - run: |
+          npm run all
+  test-action:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./
+      - name: Tool Versions
+        shell: bash
+        run: |
+          yosys --version
+          sby --help | head -1
+          nextpnr-ice40 --version
+          nextpnr-ecp5 --version
+          nextpnr-nexus --version
+          verilator --version
+          yices --version | head -1
+          python --version
+  test-action-pinned:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./
+        with:
+          version: '2023-02-10'
+      - name: Tool Versions
+        shell: bash
+        run: |
+          yosys --version
+          sby --help | head -1
+          nextpnr-ice40 --version
+          nextpnr-ecp5 --version
+          nextpnr-nexus --version
+          verilator --version
+          yices --version | head -1
+          python --version
+  test-action-python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./
+        with:
+          python-override: true
+      - name: Tool Versions
+        shell: bash
+        run: |
+          yosys --version
+          sby --help | head -1
+          nextpnr-ice40 --version
+          nextpnr-ecp5 --version
+          nextpnr-nexus --version
+          verilator --version
+          yices --version | head -1
+          python3 --version
+  test-action-darwin:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Tool Versions
+        shell: bash
+        run: |
+          yosys --version
+          sby --help | head -1
+          nextpnr-ice40 --version
+          nextpnr-ecp5 --version
+          nextpnr-nexus --version
+          verilator --version
+          yices --version | head -1
+          python --version
+  test-action-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./
+      - name: Tool Versions
+        run: |
+          yosys --version
+          sby --help
+          nextpnr-ice40 --version
+          nextpnr-ecp5 --version
+          nextpnr-nexus --version
+          verilator --version
+          yices --version
+          python --version

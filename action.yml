@@ -1,12 +1,17 @@
 name: Setup OSS CAD Suite
-description: Set up a specific version of OSS CAD Suite and add the command-line tools to the PATH
-author: GitHub
+description: This downloads and sets up a pre-build EDA environment from the YosysHQ OSS CAD Suite, allowing you to have all the most up-to-date tools available to you.
+author: YosysHQ
 branding:
   color: purple
   icon: cpu
 inputs:
+  github-token:
+    description: The workflow GITHUB_TOKEN to authenticate to the API with, this helps with API request limits from the public endpoint
+  version:
+    description: Version range or exact version of OSS CAD Suite to use
   osscadsuite-version:
     description: Version range or exact version of OSS CAD Suite to use
+    deprecationMessage: This option is deprecated and should be replaced with the "version" option
   python-override:
     description: Use Python3 provided with OSS CAD Suite
     default: false

@@ -1,35 +1,65 @@
-# setup-oss-cad-suite
+# Setup-OSS-CAD-Suite
 
-This action sets up a [OSS CAD Suite](https://github.com/YosysHQ/oss-cad-suite-build) environment for use in actions by:
+This downloads and sets up a pre-build EDA environment from [OSS CAD Suite](https://github.com/YosysHQ/oss-cad-suite-build), allowing you to have all the most up-to-date tools available to you.
 
-- downloading a version of OSS CAD Suite by version (or latest by default) and adding to PATH
 
-# Usage
+## Usage
 
-Using latest release
+The following examples show the basic usage for this action.
+
+### Set up the latest release of the tools
+
+This sets up the latest nightly build of the oss-cad-suite tools and adds them to your path.
+
 ```yaml
 steps:
-- uses: actions/checkout@v2
-- uses: YosysHQ/setup-oss-cad-suite@v1
+- uses: actions/checkout@v3
+- uses: YosysHQ/setup-oss-cad-suite@v2
 - run: yosys --version
 ```
+### Set up a specific release of the tools
 
-Matching an specific release:
+This sets up a specified build of the oss-cad-suite tools and adds them to your path.
+
 ```yaml
 steps:
-- uses: actions/checkout@v2
-- uses: YosysHQ/setup-oss-cad-suite@v1
+- uses: actions/checkout@v3
+- uses: YosysHQ/setup-oss-cad-suite@v2
   with:
-    osscadsuite-version: '2021-05-28'
+    version: '2021-05-28'
 - run: yosys --version
 ```
 
-OSS CAD Suite flavored Python3 can be used with next option:
+**HINT:** This can be combined with the [`@actions/cache`](https://github.com/actions/toolkit/tree/main/packages/cache) action to cache the download to speed up subsequent CI runs.
+
+### Use `GITHUB_TOKEN` to prevent API rate limiting
+
+Sometimes the action will fail due to the workers IP hitting the public API rate limit. With this the action will authenticate to the API with the token to allow you to hopefully eliminate the flakiness that would occur due to this.
+
+
 ```yaml
 steps:
-- uses: YosysHQ/setup-oss-cad-suite@v1
+- uses: actions/checkout@v3
+- uses: YosysHQ/setup-oss-cad-suite@v2
+  with:
+    github-token: ${{ secrets.GITHUB_TOKEN }}
+- run: yosys --version
+```
+
+> **Note** The action will not write to the API using the token, the only time the token is used is
+> when reading the `releases` API endpoint for oss-cad-suite builds
+
+### Use bundled python3 environment
+
+You can override the systems python environment with the one bundled with oss-cad-suite as follows:
+
+```yaml
+steps:
+- uses: actions/checkout@v3
+- uses: YosysHQ/setup-oss-cad-suite@v2
   with:
     python-override: true
+- run: yosys --version
 ```
 
 # Example
@@ -43,19 +73,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: YosysHQ/setup-oss-cad-suite@v1
+      - uses: YosysHQ/setup-oss-cad-suite@v2
       - run: yosys --version
 ```
-# Release procedure
 
-- Commit all new changes
-- Add tag to latest changes
-  - git tag -a v1.x.0 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx -m "Release 1.x.0"
-  - git push origin v1.x.0
-- Update tag for v1 release
-  - git tag -f -a v1 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx -m "Release 1.x.0"
-  - git push origin v1 --force
+## License
 
-# License
-
-The scripts and documentation in this project are released under the [ISC](COPYING)
+The scripts and documentation in this project are released under the [ISC](LICENSE)
