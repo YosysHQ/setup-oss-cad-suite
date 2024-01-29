@@ -16,5 +16,5 @@ inputs:
     description: Use Python3 provided with OSS CAD Suite
     default: false
 runs:
-  using: node16
+  using: node20
   main: dist/index.js

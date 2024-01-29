@@ -13,8 +13,8 @@ This sets up the latest nightly build of the oss-cad-suite tools and adds them t
 
 ```yaml
 steps:
-- uses: actions/checkout@v3
-- uses: YosysHQ/setup-oss-cad-suite@v2
+- uses: actions/checkout@v4
+- uses: YosysHQ/setup-oss-cad-suite@v3
 - run: yosys --version
 ```
 ### Set up a specific release of the tools
@@ -23,8 +23,8 @@ This sets up a specified build of the oss-cad-suite tools and adds them to your 
 
 ```yaml
 steps:
-- uses: actions/checkout@v3
-- uses: YosysHQ/setup-oss-cad-suite@v2
+- uses: actions/checkout@v4
+- uses: YosysHQ/setup-oss-cad-suite@v3
   with:
     version: '2021-05-28'
 - run: yosys --version
@@ -39,8 +39,8 @@ Sometimes the action will fail due to the workers IP hitting the public API rate
 
 ```yaml
 steps:
-- uses: actions/checkout@v3
-- uses: YosysHQ/setup-oss-cad-suite@v2
+- uses: actions/checkout@v4
+- uses: YosysHQ/setup-oss-cad-suite@v3
   with:
     github-token: ${{ secrets.GITHUB_TOKEN }}
 - run: yosys --version
@@ -55,8 +55,8 @@ You can override the systems python environment with the one bundled with oss-ca
 
 ```yaml
 steps:
-- uses: actions/checkout@v3
-- uses: YosysHQ/setup-oss-cad-suite@v2
+- uses: actions/checkout@v4
+- uses: YosysHQ/setup-oss-cad-suite@v3
   with:
     python-override: true
 - run: yosys --version
@@ -73,7 +73,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: YosysHQ/setup-oss-cad-suite@v2
+      - uses: YosysHQ/setup-oss-cad-suite@v3
       - run: yosys --version
 ```
 
