@@ -11,15 +11,18 @@ inputs:
     description: >
       The workflow GITHUB_TOKEN to authenticate to the API with, this helps with API request limits
       from the public endpoint.
+    required: false
 
   version:
     description: >
       Version range or exact version of OSS CAD Suite to use
+    required: false
 
   python-override:
     description: >
      Use Python3 provided with OSS CAD Suite
     default: false
+    required: false
 
 runs:
   using: node20
