@@ -93,7 +93,20 @@ async function main(): Promise<void> {
 		const os = process.platform
 		const arch = process.arch
 		const tag = core.getInput('version')
-		const token = core.getInput('github-token')
+
+		const token = (() => {
+			const gh_token_old = core.getInput('github-token')
+			const gh_token = core.getInput('token')
+
+			// If the old token is set, use that preferentially
+			if (gh_token_old !== '') {
+				return gh_token_old
+			}
+
+			// Otherwise use the new, defaulted token
+			return gh_token
+		})()
+
 		const pkg_name = (() => {
 			if (isPosix(os)) {
 				return 'oss-cad-suite.tgz'

@@ -11,6 +11,16 @@ inputs:
     description: >
       The workflow GITHUB_TOKEN to authenticate to the API with, this helps with API request limits
       from the public endpoint.
+    deprecationMessage: This option has been deprecated in favor of the "token" option.
+    required: false
+
+  token:
+    description: >
+      The GitHub token to use for API authentication in order to download OSS CAD Suite build releases.
+
+      This option defaults to the scoped GitHub token for this repository, to disable authenticated fetches
+      set this option to "null".
+    default: ${{ github.token }}
     required: false
 
   version:
