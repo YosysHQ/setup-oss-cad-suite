@@ -1,4 +1,5 @@
 import * as core   from '@actions/core'
+import * as cache  from '@actions/cache'
 import * as io     from '@actions/io'
 import * as tc     from '@actions/tool-cache'
 import * as exec   from '@actions/exec'
@@ -99,6 +100,40 @@ function isPosix(os: NodeJS.Platform) {
 	return ((os === 'linux') || (os === 'darwin'))
 }
 
+async function extractPackage(pkg_file: string, pkg_dir: string, os: NodeJS.Platform) {
+	core.info(`Extracting ${pkg_file} to ${pkg_dir}`)
+	let suite_path = undefined
+	if (isPosix(os)) {
+		core.debug('System is a posix-like, using extract tar')
+		suite_path = await tc.extractTar(
+			pkg_file, pkg_dir,
+			['xz', '--strip-components=1']
+		)
+	} else {
+		core.debug('Assuming system is windows, trying to run installer')
+		suite_path = pkg_dir
+		await exec.exec(
+			pkg_file, [
+				// Because we can't strip out the root we have to just extract over the dir
+				`-o${process.env.RUNNER_TEMP}`, '-y'
+			]
+		)
+	}
+	return suite_path
+}
+
+function setupEnvironment(suite_path: string) {
+	core.debug(`Suite path is '${suite_path}'`)
+	// Add the bin dir to the path
+	core.addPath(`${suite_path}/bin`)
+
+	// If we are overloading the system python, do so
+	if (core.getBooleanInput('python-override')) {
+		core.info('Overloading system python with oss-cad-suite provided python')
+		core.addPath(`${suite_path}/py3bin`)
+	}
+}
+
 async function main(): Promise<void> {
 	core.info('Setting up oss-cad-suite')
 	try {
@@ -106,7 +141,6 @@ async function main(): Promise<void> {
 		const os = process.platform
 		const arch = process.arch
 		const tag = core.getInput('version')
-
 		const token = (() => {
 			const gh_token_old = core.getInput('github-token')
 			const gh_token = core.getInput('token')
@@ -119,7 +153,8 @@ async function main(): Promise<void> {
 			// Otherwise use the new, defaulted token
 			return gh_token
 		})()
-
+		const use_cache = core.getBooleanInput('cache')
+		const cache_key = core.getInput('cache-key')
 		const octokit = (() => {
 			// If we have a token, use that
 			if (token !== '') {
@@ -128,7 +163,6 @@ async function main(): Promise<void> {
 			// Otherwise, try to use an unauthenticated version
 			return new GitHub()
 		})()
-
 		const pkg_name = (() => {
 			if (isPosix(os)) {
 				return 'oss-cad-suite.tgz'
@@ -142,54 +176,71 @@ async function main(): Promise<void> {
 		// Ensure we're running on a supported configuration
 		_validate(os, arch)
 
-		// Make the target dir for extraction
-		await io.mkdirP(pkg_dir)
+		const suite_path = await (async () => {
+			const cache_discriminator = (() => {
+				if (tag !== '') {
+					return tag
+				}
 
-		// Get the URL for the release
-		const [release_url, version] = await getReleaseURL(
-			octokit,
-			os === 'win32' ? 'windows' : os,
-			arch,
-			tag === '' ? undefined : tag
-		)
+				if (cache_key !== '') {
+					return cache_key
+				}
 
-		// Download the package to the temp directory
-		core.info(`Downloading package from ${release_url}`)
-		const pkg_file = await tc.downloadTool(
-			release_url,
-			core.toPlatformPath(`${process.env.RUNNER_TEMP}/${pkg_name}`)
-		)
+				const now = new Date(Date.now())
 
-		// Extract the package
-		core.info(`Extracting ${pkg_file} to ${pkg_dir}`)
-		let suite_path = undefined
-		if (isPosix(os)) {
-			core.debug('System is a posix-like, using extract tar')
-			suite_path = await tc.extractTar(
-				pkg_file, pkg_dir,
-				['xz', '--strip-components=1']
+				return `${now.getUTCFullYear()}${now.getUTCMonth()}${now.getDate()}`
+			})()
+
+			core.debug(`Cache discriminator is ${cache_discriminator}`)
+			const final_cache_key = `oss-cad-suite-${os}-${arch}-${cache_discriminator}`
+
+			// If we're using the cache, then try to restore from it first
+			if (use_cache) {
+				core.info('Attempting to restore from cache')
+				const restore_key = await cache.restoreCache([pkg_dir], final_cache_key)
+
+				// If we get our key back, then it restored properly
+				if (restore_key) {
+					core.info(`Found cached OSS CAD Suite build for ${arch}`)
+					return pkg_dir
+				}
+
+				// If not, fall through to the download routine
+				core.info(`Did not find cached build for OSS CAD Suite on ${arch}, downloading`)
+			}
+
+			// Get the URL for the release
+			const [release_url, version] = await getReleaseURL(
+				octokit,
+				os === 'win32' ? 'windows' : os,
+				arch,
+				tag === '' ? undefined : tag
 			)
-		} else {
-			core.debug('Assuming system is windows, trying to run installer')
-			suite_path = pkg_dir
-			await exec.exec(
-				pkg_file, [
-					// Because we can't strip out the root we have to just extract over the dir
-					`-o${process.env.RUNNER_TEMP}`, '-y'
-				]
+
+			await io.mkdirP(pkg_dir)
+
+			core.info(`Downloading package from ${release_url}`)
+			const pkg_file = await tc.downloadTool(
+				release_url,
+				core.toPlatformPath(`${process.env.RUNNER_TEMP}/${pkg_name}`),
+				// If we have a token, use it
+				token === '' ? undefined : token
 			)
-		}
 
-		core.debug(`Suite path is '${suite_path}'`)
+			const extract_dir = await extractPackage(pkg_file, pkg_dir, os)
 
-		// Add the bin dir to the path
-		core.addPath(`${suite_path}/bin`)
+			// If we are using the cache, and the cache failed, try to cache it this time
+			if (use_cache) {
+				core.info(`Attempting to cache OSS CAD Suite build ${version} for ${arch}`)
+				const cache_id = await cache.saveCache([ extract_dir ], final_cache_key)
+				core.info(`Successfully cached (cache id: ${cache_id})`)
+			}
 
-		// If we are overloading the system python, do so
-		if (core.getBooleanInput('python-override')) {
-			core.info('Overloading system python with oss-cad-suite provided python')
-			core.addPath(`${suite_path}/py3bin`)
-		}
+			return extract_dir
+		})()
+
+
+		setupEnvironment(suite_path)
 
 		core.info('Done')
 	} catch (err) {

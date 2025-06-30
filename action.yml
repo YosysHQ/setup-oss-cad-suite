@@ -48,6 +48,23 @@ inputs:
     default: false
     required: false
 
+  cache:
+    description: >
+      Enables the use of the GitHub caching layer to re-use already downloaded release.
+    default: false
+    required: false
+
+  cache-key:
+    description: >
+      The key to use for OSS CAD Suite build lookups.
+
+      If not provided then the cache key will be the following:
+
+        oss-cad-suite-${platform}-${arch}-${utc_date_stamp}
+
+      If the "version" is specified, then the "utc_date_stamp" is then replaced with that.
+    required: false
+
 runs:
   using: node20
   main: dist/index.js
