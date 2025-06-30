@@ -9,8 +9,14 @@ branding:
 inputs:
   github-token:
     description: >
-      The workflow GITHUB_TOKEN to authenticate to the API with, this helps with API request limits
-      from the public endpoint.
+      The GitHub token to use for API authentication in order to download OSS CAD Suite build releases.
+
+      This option is deprecated in favor of the "token" option, which now defaults to the repository scoped
+      token, and is overridable and can be disabled if wanted.
+
+      It is **highly** recommended to set the workflow job permissions to ***READ ONLY** for security, while
+      this action *should never* use the provided token for API writes, it would be best to explicitly ensure
+      that this is not possible in the first place.
     deprecationMessage: This option has been deprecated in favor of the "token" option.
     required: false
 
@@ -19,18 +25,26 @@ inputs:
       The GitHub token to use for API authentication in order to download OSS CAD Suite build releases.
 
       This option defaults to the scoped GitHub token for this repository, to disable authenticated fetches
-      set this option to "null".
+      set this option to an empty string ('').
+
+      It is **highly** recommended to set the workflow job permissions to ***READ ONLY** for security, while
+      this action *should never* use the provided token for API writes, it would be best to explicitly ensure
+      that this is not possible in the first place.
     default: ${{ github.token }}
     required: false
 
   version:
     description: >
-      Version range or exact version of OSS CAD Suite to use
+      The explicit version of OSS CAD Suite to use.
+
+      The version numbers are in the format "YYYY-MM-DD" and are typically built nightly, see
+      the [oss-cad-suite release page](https://github.com/YosysHQ/oss-cad-suite-build/releases) for a
+      full list of available releases.
     required: false
 
   python-override:
     description: >
-     Use Python3 provided with OSS CAD Suite
+      Preferentially use the Python 3 environment packaged with the OSS CAD Suite build on this platform.
     default: false
     required: false
 
