@@ -1,66 +1,79 @@
-import * as core from '@actions/core'
-import * as io   from '@actions/io'
-import * as tc   from '@actions/tool-cache'
-import * as http from '@actions/http-client'
-import * as exec from '@actions/exec'
+import * as core   from '@actions/core'
+import * as io     from '@actions/io'
+import * as tc     from '@actions/tool-cache'
+import * as exec   from '@actions/exec'
+import * as github from '@actions/github'
+import { GitHub } from '@actions/github/lib/utils'
+import { Octokit } from '@octokit/core'
+import { Api } from '@octokit/plugin-rest-endpoint-methods/dist-types/types'
 
 
-type github_asset = {
-	name: string,
-	browser_download_url: string,
+const REPO_META = {
+	owner: 'YosysHQ',
+	repo: 'oss-cad-suite-build',
 }
 
-type github_release = {
-	assets: github_asset[]
-}
+async function getReleaseURL(
+	octokit: Octokit & Api, platform = 'linux', arch = 'x64', version?: string
+): Promise<[string, string]> {
+	const RELEASE_PREFIX = `oss-cad-suite-${platform}-${arch}`
 
-const API_URL = 'https://api.github.com/repos/YosysHQ/oss-cad-suite-build'
+	const releases = await (async () => {
+		// If a specific version was requested, get that
+		if (version) {
+			const resp = await octokit.rest.repos.getReleaseByTag({
+				owner: REPO_META.owner,
+				repo: REPO_META.repo,
+				tag: version
+			})
 
-async function getDownloadURL(platform = 'linux', arch = 'x64', tag?: string, token?: string): Promise<string> {
-	const ARCHIVE_PREFIX = `oss-cad-suite-${platform}-${arch}`
-	const API_ENDPOINT = (() => {
-		if (tag) {
-			return `releases/tags/${tag}`
-		}
-		return 'releases/latest'
-	})()
-	const ENDPOINT_URL = `${API_URL}/${API_ENDPOINT}`
-
-	core.debug(`Using API_ENDPOINT of '${API_ENDPOINT}'`)
-	core.debug(`Archive prefix is '${ARCHIVE_PREFIX}'`)
-
-	const _http = new http.HttpClient(
-		`setup-oss-cad-suite-v${process.env.npm_package_version}`
-	)
-
-	core.info(`Getting download URL for ${ARCHIVE_PREFIX}`)
-	core.debug(`Endpoint URL is '${ENDPOINT_URL}'`)
-	const resp = await _http.getJson<github_release>(
-		ENDPOINT_URL, (() => {
-			if (token) {
-				return {'authorization': `Bearer: ${token}`}
+			// Check to make sure we got an OK
+			if (resp.status !== 200) {
+				throw Error(`Unable to get OSS CAD Suite release for '${version}'`)
 			}
-			return undefined
-		})()
-	)
-	const assets = resp.result?.assets
 
-	if (!assets) {
-		core.debug('assets is empty')
-		throw Error('Unable to get download URL for oss-cad-suite package')
+			core.debug(`Found OSS CAD Suite release for ${version}`)
+
+			// Return the release data
+			return [ resp.data ]
+		}
+
+		// Otherwise the latest list of releases
+		const resp = await octokit.rest.repos.listReleases({
+			owner: REPO_META.owner,
+			repo: REPO_META.repo,
+			page: 1
+		})
+
+		// Check to make sure we got an OK
+		if (resp.status !== 200) {
+			throw Error('Unable to get latest OSS CAD Suite releases')
+		}
+
+		core.debug(`Found ${resp.data.length} OSS CAD Suite releases`)
+
+		return resp.data
+	})()
+
+	// If this job triggers and the result is not cached, then we *might* try to get an asset
+	// that has not been generated quite yet if the builds are still running, so we try to get the
+	// next release we can.
+
+	for (const release of releases) {
+		// Get the first matching release
+		const asset = release.assets.filter(
+			asset => asset.name.startsWith(RELEASE_PREFIX)
+		).shift()
+
+		// If we have the asset, then try to get it
+		if (asset) {
+			core.info(`Got OSS CAD Suite release ${release.name}`)
+			return [asset.browser_download_url, release.tag_name]
+		}
 	}
 
-	const url = assets.filter(
-		pkg => pkg.name.startsWith(ARCHIVE_PREFIX)
-	).map(
-		pkg => pkg.browser_download_url
-	).shift()
-
-	if (!url) {
-		core.debug('Could not find download URL for prefixed package')
-		throw Error('Unable to get download URL for oss-cad-suite package')
-	}
-	return url
+	// If we got this far, then we were not able to get the asset URL
+	throw Error(`Unable to get OSS CAD Suite release for ${platform}-${arch}`)
 }
 
 function _validate(os: NodeJS.Platform , arch: NodeJS.Architecture) {
@@ -107,6 +120,15 @@ async function main(): Promise<void> {
 			return gh_token
 		})()
 
+		const octokit = (() => {
+			// If we have a token, use that
+			if (token !== '') {
+				return github.getOctokit(token)
+			}
+			// Otherwise, try to use an unauthenticated version
+			return new GitHub()
+		})()
+
 		const pkg_name = (() => {
 			if (isPosix(os)) {
 				return 'oss-cad-suite.tgz'
@@ -123,17 +145,18 @@ async function main(): Promise<void> {
 		// Make the target dir for extraction
 		await io.mkdirP(pkg_dir)
 
-		// Get the download URL for the package and then download it
-		const download_url = await getDownloadURL(
-			os === 'win32' ? 'windows' : os, arch,
-			tag === '' ? undefined : tag,
-			token === '' ? undefined : token
+		// Get the URL for the release
+		const [release_url, version] = await getReleaseURL(
+			octokit,
+			os === 'win32' ? 'windows' : os,
+			arch,
+			tag === '' ? undefined : tag
 		)
 
 		// Download the package to the temp directory
-		core.info(`Downloading package from ${download_url}`)
+		core.info(`Downloading package from ${release_url}`)
 		const pkg_file = await tc.downloadTool(
-			download_url,
+			release_url,
 			core.toPlatformPath(`${process.env.RUNNER_TEMP}/${pkg_name}`)
 		)
 
