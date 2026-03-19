@@ -1,6 +1,7 @@
 {
   "name": "setup-oss-cad-suite",
-  "version": "3.0.0",
+  "version": "4.0.0",
+  "type": "module",
   "license": "ISC",
   "private": true,
   "description": "Setup the YosysHQ OSS CAD Suite",
@@ -17,19 +18,19 @@
     "url": "git+https://github.com/YosysHQ/setup-oss-cad-suite"
   },
   "dependencies": {
-    "@actions/core": "^1.10.1",
-    "@actions/exec": "^1.1.1",
-    "@actions/io": "^1.1.3",
-    "@actions/tool-cache": "^2.0.1",
-    "@actions/http-client": "^2.2.0"
+    "@actions/core": "^3.0.0",
+    "@actions/exec": "^3.0.0",
+    "@actions/http-client": "^4.0.0",
+    "@actions/io": "^3.0.2",
+    "@actions/tool-cache": "^4.0.0"
   },
   "devDependencies": {
-    "@vercel/ncc": "^0.38.1",
-    "@types/node": "^20.11.10",
-		"@typescript-eslint/eslint-plugin": "^6.19.1",
-		"@typescript-eslint/parser": "^6.19.1",
-    "eslint": "^8.56.0",
-    "eslint-plugin-github": "^4.10.1",
-    "typescript": "^5.3.3"
+    "@types/node": "^25.5.0",
+    "@typescript-eslint/eslint-plugin": "^8.57.1",
+    "@typescript-eslint/parser": "^8.57.1",
+    "@vercel/ncc": "^0.38.4",
+    "eslint": "^9.39.4",
+    "eslint-plugin-github": "^6.0.0",
+    "typescript": "^5.9.3"
   }
 }
